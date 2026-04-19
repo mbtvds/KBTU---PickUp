@@ -1,0 +1,169 @@
+<!-- admin-page.component.html -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">KBTU<span class="accent">food</span></div>
+    <div class="sidebar-role">Администратор</div>
+    <button class="nav-btn active">
+      <span class="nav-icon">🏪</span> Заведения
+    </button>
+    <div class="sidebar-bottom">
+      <button class="nav-btn logout-btn" (click)="logout()">
+        <span class="nav-icon">→</span> Выйти
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="page-title">Управление заведениями</div>
+    <p class="page-sub">Создавайте аккаунты для кухонь и управляйте заведениями</p>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-val">{{ cafes.length }}</div>
+        <div class="stat-label">Заведений всего</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-val">{{ cafes.length }}</div>
+        <div class="stat-label">Активных</div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    @if (errorMessage && !showModal) {
+      <div class="error-banner">⚠️ {{ errorMessage }}</div>
+    }
+
+    <!-- Section head -->
+    <div class="section-head">
+      <div class="section-title">Список заведений</div>
+      <button class="add-btn" (click)="openCreate()">＋ Добавить заведение</button>
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Загружаем заведения...</p>
+      </div>
+    } @else {
+      <div class="table-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Заведение</th>
+              <th>Email (логин)</th>
+              <th>Этаж</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cafe of cafes; track trackById($index, cafe)) {
+              <tr>
+                <td>
+                  <div class="cafe-cell">
+                    <div class="cafe-emoji-sm">{{ cafe.emoji }}</div>
+                    <div>
+                      <div class="cafe-name-sm">{{ cafe.name }}</div>
+                      <div class="cafe-floor">{{ cafe.floor }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="email-cell">{{ cafe.email }}</td>
+                <td>{{ cafe.floor }}</td>
+                <td>
+                  <div class="action-btns">
+                    <button class="btn-edit" (click)="openEdit(cafe)">Изменить</button>
+                    <button class="btn-del"  (click)="delete(cafe)">Удалить</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (cafes.length === 0) {
+          <div class="empty-table">
+            <div class="empty-icon">🏪</div>
+            <p class="empty-title">Заведений нет</p>
+            <p class="empty-sub">Создайте первое заведение</p>
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Modal -->
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <div class="modal-title">
+        {{ isEditing ? 'Изменить заведение' : 'Новое заведение' }}
+      </div>
+
+      @if (errorMessage) {
+        <div class="error-banner">⚠️ {{ errorMessage }}</div>
+      }
+
+      <!-- [(ngModel)] #1 -->
+      <div class="form-group">
+        <label class="form-label">Название заведения *</label>
+        <input class="form-input" type="text"
+               placeholder="Буфет 3 этаж"
+               [(ngModel)]="formName" name="formName">
+      </div>
+
+      <!-- [(ngModel)] #2 -->
+      <div class="form-group">
+        <label class="form-label">Эмодзи</label>
+        <input class="form-input" type="text"
+               placeholder="🥗"
+               [(ngModel)]="formEmoji" name="formEmoji">
+      </div>
+
+      <!-- [(ngModel)] #3 -->
+      <div class="form-group">
+        <label class="form-label">Этаж / Расположение</label>
+        <input class="form-input" type="text"
+               placeholder="3 этаж, корпус A"
+               [(ngModel)]="formFloor" name="formFloor">
+      </div>
+
+      <!-- [(ngModel)] #4 -->
+      <div class="form-group">
+        <label class="form-label">Email (логин для кухни) *</label>
+        <input class="form-input" type="email"
+               placeholder="bufet3@kbtu.kz"
+               [(ngModel)]="formEmail" name="formEmail">
+      </div>
+
+      <!-- [(ngModel)] #5 -->
+      <div class="form-group">
+        <label class="form-label">
+          {{ isEditing ? 'Новый пароль (оставьте пустым если не менять)' : 'Пароль *' }}
+        </label>
+        <input class="form-input" type="password"
+               placeholder="••••••••"
+               [(ngModel)]="formPassword" name="formPassword">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="closeModal()">Отмена</button>
+        <button class="btn-primary" [disabled]="isSaving" (click)="save()">
+          {{ isSaving ? 'Сохраняем...' : (isEditing ? 'Сохранить' : 'Создать аккаунт') }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Toast -->
+@if (toastMessage) {
+  <div class="success-toast">{{ toastMessage }}</div>
+}
