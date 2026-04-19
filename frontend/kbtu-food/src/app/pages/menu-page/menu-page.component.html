@@ -1,0 +1,112 @@
+<!-- menu-page.component.html -->
+<div class="menu-page">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="sidebar-title">Заведения</div>
+    <div class="cafe-list">
+      <button class="cafe-btn" [class.active]="activeCafeId === null"
+              (click)="setCafe(null)">
+        <span class="cafe-emoji">🍽️</span> Все заведения
+      </button>
+
+      @for (cafe of cafes; track trackCafe($index, cafe)) {
+        <button class="cafe-btn" [class.active]="activeCafeId === cafe.id"
+                (click)="setCafe(cafe.id)">
+          <span class="cafe-emoji">{{ cafe.emoji }}</span> {{ cafe.name }}
+        </button>
+      }
+    </div>
+
+    <div class="sidebar-title">Категория</div>
+    <div class="filter-chips">
+      @for (cat of categories; track cat.id) {
+        <button class="chip" [class.active]="activeCategory === cat.id"
+                (click)="setCategory(cat.id)">
+          <span class="chip-dot"></span>{{ cat.label }}
+        </button>
+      }
+    </div>
+
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Search — [(ngModel)] form control #1 -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Найти блюдо..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        name="search">
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Загружаем меню...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (errorMessage && !isLoading) {
+      <div class="error-banner">
+        <span>⚠️ {{ errorMessage }}</span>
+        <button (click)="loadMenu()">Повторить</button>
+      </div>
+    }
+
+    @if (!isLoading && !errorMessage) {
+      <div class="section-head">
+        <div class="section-title">{{ activeCafeName }}</div>
+        <div class="section-count">{{ filteredItems.length }} блюд</div>
+      </div>
+
+      @if (filteredItems.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🍽️</div>
+          <p class="empty-title">Ничего не найдено</p>
+          <p class="empty-sub">Попробуйте изменить фильтры или поиск</p>
+        </div>
+      } @else {
+        <div class="menu-grid">
+          @for (item of filteredItems; track trackById($index, item)) {
+            <div class="menu-card" [style.animation-delay]="$index * 0.04 + 's'">
+
+              <div class="card-img">{{ item.emoji }}</div>
+
+              <div class="card-body">
+                <div class="card-name">{{ item.name }}</div>
+                <div class="card-desc">{{ item.description }}</div>
+
+                <div class="card-tags">
+                  @for (tag of item.tags; track tag) {
+                    <span class="tag">{{ tag }}</span>
+                  }
+                </div>
+
+                <div class="card-foot">
+                  <div class="price">{{ item.price | number }} ₸</div>
+                  <button
+                    class="add-btn"
+                    [class.added]="isInCart(item)"
+                    (click)="addToCart(item)">
+                    {{ isInCart(item) ? '✓' : '+' }}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    }
+
+  </main>
+
+</div>

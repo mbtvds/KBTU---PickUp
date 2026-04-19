@@ -1,0 +1,85 @@
+<!-- login-page.component.html -->
+<div class="login-page">
+  <div class="logo">KBTU<span class="accent">food</span></div>
+
+  <div class="card">
+
+    <!-- Mode tabs -->
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="mode === 'login'"
+              (click)="switchMode('login')">Войти</button>
+      <button class="tab-btn" [class.active]="mode === 'register'"
+              (click)="switchMode('register')">Регистрация</button>
+    </div>
+
+    <!-- Success state -->
+    @if (isSuccess) {
+      <div class="success-state">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Добро пожаловать!</div>
+        <p class="success-sub">Перенаправляем в меню...</p>
+      </div>
+    } @else {
+
+      <!-- Error banner -->
+      @if (errorMessage) {
+        <div class="error-banner">⚠️ {{ errorMessage }}</div>
+      }
+
+      <!-- Form -->
+      <div class="form-body">
+
+        <!-- [(ngModel)] #1 — name (register only) -->
+        @if (mode === 'register') {
+          <div class="form-group">
+            <label class="form-label">Имя</label>
+            <input class="form-input" type="text"
+                   placeholder="Алибек Джаксыбеков"
+                   [(ngModel)]="name" name="name">
+          </div>
+        }
+
+        <!-- [(ngModel)] #2 — email -->
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email"
+                 placeholder="a.zhaksybekov@kbtu.kz"
+                 [(ngModel)]="email" name="email">
+          <div class="hint">Корпоративный email KBTU</div>
+        </div>
+
+        <!-- [(ngModel)] #3 — password -->
+        <div class="form-group">
+          <label class="form-label">Пароль</label>
+          <input class="form-input" type="password"
+                 placeholder="••••••••"
+                 [(ngModel)]="password" name="password">
+        </div>
+
+        <!-- [(ngModel)] #4 — confirm password (register only) -->
+        @if (mode === 'register') {
+          <div class="form-group">
+            <label class="form-label">Подтвердите пароль</label>
+            <input class="form-input" type="password"
+                   placeholder="••••••••"
+                   [(ngModel)]="confirm" name="confirm">
+          </div>
+        }
+
+        <button class="submit-btn"
+                [disabled]="isLoading"
+                (click)="submit()">
+          {{ isLoading ? 'Загрузка...' : (mode === 'login' ? 'Войти →' : 'Зарегистрироваться →') }}
+        </button>
+
+      </div>
+
+      <div class="kbtu-hint">
+        <span>🎓</span>
+        <span>Только для студентов и сотрудников KBTU.</span>
+      </div>
+
+    }
+
+  </div>
+</div>

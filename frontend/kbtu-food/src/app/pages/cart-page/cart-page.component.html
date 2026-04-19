@@ -1,0 +1,141 @@
+<!-- cart-page.component.html -->
+<div class="cart-page">
+
+  <!-- Empty state -->
+  @if (cartService.isEmpty()) {
+    <div class="empty-state">
+      <div class="empty-icon">🛒</div>
+      <p class="empty-title">Корзина пуста</p>
+      <p class="empty-sub">Добавьте что-нибудь вкусное из меню</p>
+      <a routerLink="/menu" class="go-btn">← Перейти в меню</a>
+    </div>
+  } @else {
+
+    <div class="layout">
+
+      <!-- LEFT: items list -->
+      <div class="left-col">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Ваша <span class="accent">корзина</span></h1>
+            <p class="page-sub">{{ items.length }} позиции из {{ uniqueCafes.length }} заведений</p>
+          </div>
+          <button class="clear-btn" (click)="clearCart()">Очистить</button>
+        </div>
+
+        <div class="cart-items">
+          @for (ci of items; track trackById($index, ci)) {
+            <div class="cart-item" [style.animation-delay]="$index * 0.05 + 's'">
+
+              <div class="item-emoji">{{ ci.item.emoji }}</div>
+
+              <div class="item-info">
+                <div class="item-name">{{ ci.item.name }}</div>
+                <div class="item-cafe">{{ ci.item.cafe_name }}</div>
+
+                <!-- [(ngModel)] form control #4 — per-item note -->
+                <textarea
+                  class="item-note"
+                  rows="1"
+                  placeholder="Пожелания к блюду..."
+                  [(ngModel)]="itemNotes[ci.item.id]"
+                  [name]="'note_' + ci.item.id">
+                </textarea>
+              </div>
+
+              <div class="qty-block">
+                <button class="qty-btn minus" (click)="changeQty(ci.item.id, -1)">−</button>
+                <span class="qty-num">{{ ci.quantity }}</span>
+                <button class="qty-btn" (click)="changeQty(ci.item.id, 1)">+</button>
+              </div>
+
+              <div class="item-price">{{ ci.item.price * ci.quantity | number }} ₸</div>
+
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- RIGHT: summary & checkout form -->
+      <aside class="summary-card">
+
+        <div class="summary-title">Оформление</div>
+
+        <!-- [(ngModel)] form control #1 — pickup time -->
+        <div class="form-group">
+          <label class="form-label">Время самовывоза</label>
+          <div class="select-wrap">
+            <select class="form-select" [(ngModel)]="pickupTime" name="pickupTime">
+              @for (slot of pickupSlots; track slot) {
+                <option [value]="slot">{{ slot }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- [(ngModel)] form control #2 — pay method -->
+        <div class="form-group">
+          <label class="form-label">Способ оплаты</label>
+          <div class="select-wrap">
+            <select class="form-select" [(ngModel)]="payMethod" name="payMethod">
+              @for (m of payMethods; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- [(ngModel)] form control #3 — order note -->
+        <div class="form-group">
+          <label class="form-label">Комментарий к заказу</label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="Аллергии, пожелания..."
+            [(ngModel)]="orderNote"
+            name="orderNote">
+        </div>
+
+        <hr class="divider">
+
+        <div class="summary-row">
+          <span class="row-label">Сумма</span>
+          <span class="row-val">{{ total | number }} ₸</span>
+        </div>
+        <div class="summary-row">
+          <span class="row-label">Самовывоз</span>
+          <span class="row-val free">Бесплатно</span>
+        </div>
+        <div class="summary-row total-row">
+          <span class="row-label">Итого</span>
+          <span class="row-val total-val">{{ total | number }} ₸</span>
+        </div>
+
+        @if (errorMessage) {
+          <div class="error-msg">⚠️ {{ errorMessage }}</div>
+        }
+
+        <button
+          class="checkout-btn"
+          [disabled]="isSubmitting"
+          (click)="placeOrder()">
+          {{ isSubmitting ? 'Оформляем...' : 'Оформить заказ →' }}
+        </button>
+
+        <div class="pickup-note">
+          <span>✓</span>
+          <span>
+            Подойдите к стойке в <strong>{{ pickupTime }}</strong> —
+            ваш заказ будет готов без очереди.
+          </span>
+        </div>
+
+      </aside>
+
+    </div>
+
+  }
+
+</div>
