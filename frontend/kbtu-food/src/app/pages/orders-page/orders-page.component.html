@@ -1,0 +1,125 @@
+<!-- orders-page.component.html -->
+<div class="orders-page">
+
+  <div class="top-bar">
+    <h1 class="page-title">Мои <span class="accent">заказы</span></h1>
+    <span class="count-badge">{{ filteredOrders.length }} заказ(а)</span>
+  </div>
+
+  <!-- Tabs — click event satisfies "4 click events that trigger API requests" -->
+  <div class="tabs">
+    @for (tab of tabs; track tab.key) {
+      <button
+        class="tab"
+        [class.active]="activeTab === tab.key"
+        (click)="switchTab(tab.key)">
+        <span class="dot dot-{{ tab.key }}"></span>
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading state -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Загружаем ваши заказы...</p>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (errorMessage && !isLoading) {
+    <div class="error-banner">
+      <span>⚠️ {{ errorMessage }}</span>
+      <button (click)="loadOrders()">Повторить</button>
+    </div>
+  }
+
+  <!-- Orders list -->
+  @if (!isLoading && !errorMessage) {
+    @if (filteredOrders.length === 0) {
+      <!-- Empty state -->
+      <div class="empty-state">
+        <div class="empty-icon">🛍️</div>
+        <p class="empty-title">Заказов нет</p>
+        <p class="empty-sub">В этой категории пока ничего нет</p>
+        <a routerLink="/menu" class="new-order-btn">+ Сделать заказ</a>
+      </div>
+    } @else {
+      <div class="orders-list">
+        @for (order of filteredOrders; track trackById($index, order)) {
+          <div class="order-card">
+
+            <!-- Card header -->
+            <div class="card-head">
+              <div class="cafe-row">
+                <div class="cafe-icon">{{ order.cafe_icon }}</div>
+                <div>
+                  <div class="cafe-name">{{ order.cafe_name }}</div>
+                  <div class="order-num">#{{ order.id }} · {{ order.created_at | date:'d MMM, HH:mm' }}</div>
+                </div>
+              </div>
+              <span class="status-pill {{ getStatusClass(order.status) }}">
+                {{ statusLabels[order.status] }}
+              </span>
+            </div>
+
+            <!-- Ready banner -->
+            @if (order.status === 'ready') {
+              <div class="ready-banner">
+                <span class="pulse"></span>
+                Ваш заказ готов! Подойдите к стойке.
+              </div>
+            }
+
+            <!-- Items -->
+            <div class="card-items">
+              @for (item of order.items; track item.id) {
+                <div class="item-row">
+                  <div>
+                    <span class="item-name">{{ item.menu_item_name }}</span>
+                    <span class="item-qty">× {{ item.quantity }}</span>
+                  </div>
+                  <span class="item-price">{{ item.price * item.quantity | number }} ₸</span>
+                </div>
+              }
+            </div>
+
+            <!-- Card footer -->
+            <div class="card-foot">
+              <div class="pickup-block">
+                <span class="pickup-icon">🕐</span>
+                <div>
+                  <div class="pickup-label">Самовывоз в</div>
+                  <div class="pickup-time">{{ order.pickup_time }}</div>
+                </div>
+              </div>
+              <div class="total-block">
+                <div class="total-label">Итого</div>
+                <div class="total-amount">{{ getOrderTotal(order) | number }} ₸</div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card-actions">
+              <!-- Click event 1 -->
+              @if (order.status === 'picked') {
+                <button class="btn-secondary" (click)="reorder(order)">
+                  Повторить заказ
+                </button>
+              }
+              <!-- Click event 2 -->
+              @if (order.status === 'pending') {
+                <button class="btn-danger" (click)="cancelOrder(order)">
+                  Отменить
+                </button>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

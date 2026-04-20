@@ -1,0 +1,275 @@
+<!-- kitchen-page.component.html -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">KBTU<span class="accent">food</span></div>
+    <div class="sidebar-cafe">{{ profileEmoji }} {{ profileName }}</div>
+    <div class="sidebar-role">Кухня</div>
+
+    <button class="nav-btn" [class.active]="activePage === 'orders'" (click)="switchPage('orders')">
+      <span class="nav-icon">📋</span> Заказы
+      @if (newOrders.length > 0) {
+        <span class="nav-badge">{{ newOrders.length }}</span>
+      }
+    </button>
+    <button class="nav-btn" [class.active]="activePage === 'menu'" (click)="switchPage('menu')">
+      <span class="nav-icon">🍽️</span> Меню
+    </button>
+    <button class="nav-btn" [class.active]="activePage === 'profile'" (click)="switchPage('profile')">
+      <span class="nav-icon">🏪</span> Профиль
+    </button>
+
+    <div class="sidebar-bottom">
+      <button class="nav-btn logout-btn" (click)="logout()">
+        <span class="nav-icon">→</span> Выйти
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── ORDERS PAGE ── -->
+    @if (activePage === 'orders') {
+      <div class="page-title">Входящие заказы</div>
+
+      @if (isLoadingOrders) {
+        <div class="loading-state"><div class="spinner"></div><p>Загружаем заказы...</p></div>
+      } @else {
+        <div class="orders-cols">
+
+          <!-- Новые -->
+          <div>
+            <div class="col-head col-new">
+              <span>Новые</span>
+              <span class="col-badge">{{ newOrders.length }}</span>
+            </div>
+            @for (order of newOrders; track trackById($index, order)) {
+              <div class="order-card">
+                <div class="order-num">#{{ order.id }}</div>
+                <div class="order-time">Принят в {{ order.created_at | date:'HH:mm' }}</div>
+                <div class="order-items">
+                  @for (item of order.items; track item.id) {
+                    <div class="order-item">
+                      <span>{{ item.menu_item_name }}</span>
+                      <span>× {{ item.quantity }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="order-pickup">
+                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time }}</span>
+                </div>
+                @if (order.note) {
+                  <div class="order-note">💬 {{ order.note }}</div>
+                }
+                <!-- Click event #1 -->
+                <button class="btn-action btn-start" (click)="startCooking(order)">
+                  ▶ Начать готовить
+                </button>
+              </div>
+            }
+            @if (newOrders.length === 0) {
+              <div class="col-empty">Нет новых заказов</div>
+            }
+          </div>
+
+          <!-- Готовится -->
+          <div>
+            <div class="col-head col-cooking">
+              <span>Готовится</span>
+              <span class="col-badge">{{ cookingOrders.length }}</span>
+            </div>
+            @for (order of cookingOrders; track trackById($index, order)) {
+              <div class="order-card">
+                <div class="order-num">#{{ order.id }}</div>
+                <div class="order-time">{{ order.created_at | date:'HH:mm' }}</div>
+                <div class="order-items">
+                  @for (item of order.items; track item.id) {
+                    <div class="order-item">
+                      <span>{{ item.menu_item_name }}</span>
+                      <span>× {{ item.quantity }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="order-pickup">
+                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time }}</span>
+                </div>
+                <!-- Click event #2 -->
+                <button class="btn-action btn-ready" (click)="markReady(order)">
+                  ✓ Готово к выдаче
+                </button>
+              </div>
+            }
+            @if (cookingOrders.length === 0) {
+              <div class="col-empty">Ничего не готовится</div>
+            }
+          </div>
+
+          <!-- Готово -->
+          <div>
+            <div class="col-head col-ready">
+              <span>Готово к выдаче</span>
+              <span class="col-badge">{{ readyOrders.length }}</span>
+            </div>
+            @for (order of readyOrders; track trackById($index, order)) {
+              <div class="order-card">
+                <div class="order-num">#{{ order.id }}</div>
+                <div class="order-time">{{ order.created_at | date:'HH:mm' }}</div>
+                <div class="order-items">
+                  @for (item of order.items; track item.id) {
+                    <div class="order-item">
+                      <span>{{ item.menu_item_name }}</span>
+                      <span>× {{ item.quantity }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="order-pickup">
+                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time }}</span>
+                </div>
+                <!-- Click event #3 -->
+                <button class="btn-action btn-done" (click)="markPicked(order)">
+                  Выдан студенту
+                </button>
+              </div>
+            }
+            @if (readyOrders.length === 0) {
+              <div class="col-empty">Нет готовых заказов</div>
+            }
+          </div>
+
+        </div>
+      }
+    }
+
+    <!-- ── MENU PAGE ── -->
+    @if (activePage === 'menu') {
+      <div class="section-head">
+        <div class="page-title">Наше меню</div>
+        <!-- Click event #4 -->
+        <button class="add-btn" (click)="openAddDish()">＋ Добавить блюдо</button>
+      </div>
+
+      @if (isLoadingMenu) {
+        <div class="loading-state"><div class="spinner"></div><p>Загружаем меню...</p></div>
+      } @else {
+        <div class="menu-grid">
+          @for (item of menuItems; track trackById($index, item)) {
+            <div class="menu-card">
+              <div class="menu-card-img">{{ item.emoji }}</div>
+              <div class="menu-card-body">
+                <div class="menu-card-name">{{ item.name }}</div>
+                <div class="menu-card-desc">{{ item.description }}</div>
+                <div class="menu-card-price">{{ item.price | number }} ₸</div>
+                <div class="menu-card-actions">
+                  <button class="btn-sm" (click)="openEditDish(item)">Изменить</button>
+                  <!-- Click event #5 -->
+                  <button class="btn-sm del" (click)="deleteDish(item)">Удалить</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        @if (menuItems.length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🍽️</div>
+            <p class="empty-title">Меню пусто</p>
+            <p class="empty-sub">Добавьте первое блюдо</p>
+          </div>
+        }
+      }
+    }
+
+    <!-- ── PROFILE PAGE ── -->
+    @if (activePage === 'profile') {
+      <div class="page-title">Профиль заведения</div>
+      <div class="profile-card">
+
+        <!-- [(ngModel)] #6 -->
+        <div class="form-group">
+          <label class="form-label">Название заведения</label>
+          <input class="form-input" type="text"
+                 [(ngModel)]="profileName" name="profileName">
+        </div>
+
+        <!-- [(ngModel)] #7 -->
+        <div class="form-group">
+          <label class="form-label">Эмодзи</label>
+          <input class="form-input" type="text"
+                 [(ngModel)]="profileEmoji" name="profileEmoji">
+        </div>
+
+        <!-- [(ngModel)] #8 -->
+        <div class="form-group">
+          <label class="form-label">Этаж / расположение</label>
+          <input class="form-input" type="text"
+                 [(ngModel)]="profileFloor" name="profileFloor">
+        </div>
+
+        <button class="add-btn" [disabled]="isSavingProfile" (click)="saveProfile()">
+          {{ isSavingProfile ? 'Сохраняем...' : 'Сохранить изменения' }}
+        </button>
+      </div>
+    }
+
+  </main>
+</div>
+
+<!-- ── Modal: добавить/изменить блюдо ── -->
+@if (showDishModal) {
+  <div class="modal-overlay" (click)="showDishModal = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-title">{{ isEditingDish ? 'Изменить блюдо' : 'Новое блюдо' }}</div>
+
+      <!-- [(ngModel)] #1 -->
+      <div class="form-group">
+        <label class="form-label">Название *</label>
+        <input class="form-input" type="text" placeholder="Латте большой"
+               [(ngModel)]="dishName" name="dishName">
+      </div>
+
+      <!-- [(ngModel)] #2 -->
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <input class="form-input" type="text" placeholder="Двойной эспрессо + молоко"
+               [(ngModel)]="dishDesc" name="dishDesc">
+      </div>
+
+      <!-- [(ngModel)] #3 -->
+      <div class="form-group">
+        <label class="form-label">Эмодзи</label>
+        <input class="form-input" type="text" placeholder="☕"
+               [(ngModel)]="dishEmoji" name="dishEmoji">
+      </div>
+
+      <!-- [(ngModel)] #4 -->
+      <div class="form-group">
+        <label class="form-label">Цена (₸) *</label>
+        <input class="form-input" type="number" placeholder="900"
+               [(ngModel)]="dishPrice" name="dishPrice">
+      </div>
+
+      <!-- [(ngModel)] #5 -->
+      <div class="form-group">
+        <label class="form-label">Категория</label>
+        <select class="form-input" [(ngModel)]="dishCategory" name="dishCategory">
+          @for (cat of categories; track cat.id) {
+            <option [value]="cat.id">{{ cat.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="showDishModal = false">Отмена</button>
+        <button class="btn-primary" [disabled]="isSavingDish" (click)="saveDish()">
+          {{ isSavingDish ? 'Сохраняем...' : (isEditingDish ? 'Сохранить' : 'Добавить') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Toast -->
+@if (toastMessage) {
+  <div class="success-toast">{{ toastMessage }}</div>
+}
