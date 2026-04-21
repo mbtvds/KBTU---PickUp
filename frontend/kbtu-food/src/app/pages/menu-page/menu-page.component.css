@@ -115,19 +115,30 @@
   font-size: 11px; color: #8a8678; line-height: 1.4;
   margin-bottom: 10px; min-height: 28px;
 }
-.card-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+.card-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
 .tag {
   font-size: 10px; font-weight: 500;
   padding: 2px 7px; border-radius: 6px;
   background: #ede9df; color: #8a8678;
 }
 
-.card-foot { display: flex; align-items: center; justify-content: space-between; }
+.card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .price {
   font-family: 'Syne', sans-serif;
   font-size: 15px; font-weight: 700;
   letter-spacing: -0.02em; color: #1a1814;
 }
+
+.card-actions { display: flex; gap: 6px; align-items: center; }
+
+.review-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid #e2ddd2; background: #f5f2eb; color: #1a1814;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.review-btn:hover { background: #ede9df; border-color: #d4c89a; transform: scale(1.08); }
 
 .add-btn {
   width: 32px; height: 32px; border-radius: 8px;
@@ -138,6 +149,84 @@
 }
 .add-btn:hover  { background: #d4401a; transform: scale(1.08); }
 .add-btn.added  { background: #2a6e3f; font-size: 13px; }
+
+/* ── Rating row ── */
+.rating-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 4px; min-height: 22px;
+}
+
+.stars { display: flex; gap: 1px; }
+.star {
+  font-size: 13px;
+  color: #d4c89a;
+}
+.star.full { color: #e5a000; }
+.star.half { color: #e5a000; opacity: 0.55; }
+.star.sm   { font-size: 11px; }
+
+.rating-val {
+  font-size: 11px; font-weight: 600; color: #1a1814;
+}
+
+.rating-none {
+  font-size: 11px; color: #c0bbb0;
+}
+
+.reviews-toggle {
+  font-size: 11px; color: #d4401a;
+  background: none; border: none;
+  cursor: pointer; padding: 0;
+  text-decoration: underline;
+}
+.reviews-toggle:hover { color: #b03515; }
+
+/* ── Reviews List (expanded) ── */
+.reviews-list {
+  background: #f9f7f2;
+  border: 1px solid #e2ddd2;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.reviews-loading,
+.reviews-empty {
+  font-size: 12px; color: #8a8678;
+  text-align: center; padding: 8px 0;
+}
+
+.review-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #ede9df;
+}
+.review-item:last-child { border-bottom: none; }
+
+.review-header {
+  display: flex; align-items: center; gap: 6px;
+}
+.review-author {
+  font-size: 11px; font-weight: 600; color: #1a1814;
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.review-stars { display: flex; gap: 1px; }
+
+.review-delete {
+  width: 18px; height: 18px;
+  font-size: 9px; line-height: 1;
+  border: none; background: transparent;
+  color: #c0bbb0; cursor: pointer; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; flex-shrink: 0;
+}
+.review-delete:hover { background: rgba(212,64,26,.1); color: #d4401a; }
+
+.review-comment {
+  font-size: 11px; color: #8a8678;
+  margin-top: 3px; line-height: 1.4;
+}
 
 /* ── States ── */
 .loading-state {
@@ -170,6 +259,96 @@
 }
 .empty-sub { font-size: 14px; color: #8a8678; }
 
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(26, 24, 20, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 100%; max-width: 360px;
+  position: relative;
+  animation: slideUp .2s ease;
+  text-align: center;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 28px; height: 28px; border-radius: 8px;
+  border: none; background: #f0ece2; color: #8a8678;
+  font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.modal-close:hover { background: #ede9df; color: #1a1814; }
+
+.modal-emoji  { font-size: 52px; margin-bottom: 12px; }
+.modal-title  {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: #1a1814; margin: 0 0 4px;
+}
+.modal-sub { font-size: 13px; color: #8a8678; margin: 0 0 20px; }
+
+/* Star picker */
+.star-picker {
+  display: flex; justify-content: center; gap: 6px;
+  margin-bottom: 8px;
+}
+.star-pick {
+  font-size: 32px; line-height: 1;
+  background: none; border: none;
+  color: #d4c89a; cursor: pointer;
+  transition: transform .1s, color .1s;
+  padding: 0;
+}
+.star-pick:hover,
+.star-pick.active { color: #e5a000; transform: scale(1.15); }
+
+.rating-label {
+  font-size: 12px; color: #8a8678;
+  margin-bottom: 16px;
+}
+
+.modal-textarea {
+  width: 100%; box-sizing: border-box;
+  border: 1px solid #e2ddd2; border-radius: 10px;
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1a1814;
+  resize: none; outline: none;
+  background: #f9f7f2;
+  transition: border-color .15s;
+  margin-bottom: 12px;
+}
+.modal-textarea:focus { border-color: #d4401a; }
+
+.modal-error {
+  font-size: 12px; color: #d4401a;
+  margin-bottom: 10px;
+}
+
+.modal-submit {
+  width: 100%; padding: 12px;
+  background: #1a1814; color: #f5f2eb;
+  border: none; border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.modal-submit:hover:not(:disabled) { background: #d4401a; }
+.modal-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .menu-page { grid-template-columns: 1fr; padding: 20px 16px 80px; }
@@ -177,4 +356,5 @@
   .cafe-list, .filter-chips { flex-direction: row; flex-wrap: wrap; gap: 6px; }
   .cafe-btn, .chip { width: auto; }
   .sidebar-title { width: 100%; }
+  .modal { margin: 16px; }
 }

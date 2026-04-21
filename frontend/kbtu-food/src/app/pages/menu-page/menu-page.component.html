@@ -34,7 +34,7 @@
   <!-- Main -->
   <main class="main">
 
-    <!-- Search — [(ngModel)] form control #1 -->
+    <!-- Search -->
     <div class="search-bar">
       <span class="search-icon">🔍</span>
       <input
@@ -90,14 +90,62 @@
                   }
                 </div>
 
+                <!-- Rating row -->
+                <div class="rating-row">
+                  <div class="stars">
+                    @for (star of getStars(getRating(item.id).rating); track $index) {
+                      <span class="star" [class.full]="star === 'full'" [class.half]="star === 'half'">★</span>
+                    }
+                  </div>
+                  @if (getRating(item.id).count > 0) {
+                    <span class="rating-val">{{ getRating(item.id).rating }}</span>
+                    <button class="reviews-toggle" (click)="toggleReviewsList(item.id)">
+                      {{ reviewsListOpen === item.id ? 'Скрыть' : getRating(item.id).count + ' отз.' }}
+                    </button>
+                  } @else {
+                    <span class="rating-none">Нет отзывов</span>
+                  }
+                </div>
+
+                <!-- Expanded reviews list -->
+                @if (reviewsListOpen === item.id) {
+                  <div class="reviews-list">
+                    @if (reviewsListLoading) {
+                      <div class="reviews-loading">Загрузка...</div>
+                    } @else if (reviewsList.length === 0) {
+                      <div class="reviews-empty">Пока нет отзывов</div>
+                    } @else {
+                      @for (review of reviewsList; track trackReview($index, review)) {
+                        <div class="review-item">
+                          <div class="review-header">
+                            <span class="review-author">{{ review.student_name }}</span>
+                            <span class="review-stars">
+                              @for (s of getStars(review.rating); track $index) {
+                                <span class="star sm" [class.full]="s === 'full'">★</span>
+                              }
+                            </span>
+                            <button class="review-delete" (click)="deleteReview(review.id, item.id)" title="Удалить">✕</button>
+                          </div>
+                          @if (review.comment) {
+                            <div class="review-comment">{{ review.comment }}</div>
+                          }
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+
                 <div class="card-foot">
                   <div class="price">{{ item.price | number }} ₸</div>
-                  <button
-                    class="add-btn"
-                    [class.added]="isInCart(item)"
-                    (click)="addToCart(item)">
-                    {{ isInCart(item) ? '✓' : '+' }}
-                  </button>
+                  <div class="card-actions">
+                    <button class="review-btn" (click)="openReviewModal(item)" title="Оставить отзыв">⭐</button>
+                    <button
+                      class="add-btn"
+                      [class.added]="isInCart(item)"
+                      (click)="addToCart(item)">
+                      {{ isInCart(item) ? '✓' : '+' }}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -110,3 +158,49 @@
   </main>
 
 </div>
+
+<!-- ── Review Modal ── -->
+@if (reviewModalOpen && reviewModalItem) {
+  <div class="modal-overlay" (click)="closeReviewModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <button class="modal-close" (click)="closeReviewModal()">✕</button>
+
+      <div class="modal-emoji">{{ reviewModalItem.emoji }}</div>
+      <h3 class="modal-title">{{ reviewModalItem.name }}</h3>
+      <p class="modal-sub">Оцените блюдо</p>
+
+      <!-- Star picker -->
+      <div class="star-picker">
+        @for (n of [1,2,3,4,5]; track n) {
+          <button
+            class="star-pick"
+            [class.active]="n <= reviewModalRating"
+            (click)="setModalRating(n)">★</button>
+        }
+      </div>
+      <div class="rating-label">{{ reviewModalRating }} из 5</div>
+
+      <!-- Comment -->
+      <textarea
+        class="modal-textarea"
+        placeholder="Комментарий (необязательно)..."
+        [(ngModel)]="reviewModalComment"
+        name="comment"
+        rows="3">
+      </textarea>
+
+      @if (reviewModalError) {
+        <div class="modal-error">{{ reviewModalError }}</div>
+      }
+
+      <button
+        class="modal-submit"
+        [disabled]="reviewModalSubmitting"
+        (click)="submitReview()">
+        {{ reviewModalSubmitting ? 'Отправляем...' : 'Отправить отзыв' }}
+      </button>
+
+    </div>
+  </div>
+}
