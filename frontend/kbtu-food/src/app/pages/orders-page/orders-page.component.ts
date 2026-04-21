@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { OrderService } from '../../services/order.service';
-import { Order } from '../../services/order.service';
+import { OrderService, Order } from '../../services/order.service';
 
-type StatusFilter = 'all' | 'pending' | 'ready' | 'picked' | 'cancelled';
+type StatusFilter = 'all' | 'pending' | 'cooking' | 'ready' | 'picked' | 'cancelled';
 
 @Component({
   selector: 'app-orders-page',
@@ -22,47 +21,48 @@ export class OrdersPageComponent implements OnInit {
   errorMessage = '';
 
   tabs: { key: StatusFilter; label: string }[] = [
-    { key: 'all',     label: 'Все' },
-    { key: 'pending', label: 'Готовятся' },
-    { key: 'ready',   label: 'Готово' },
-    { key: 'picked',  label: 'Забрано' },
+    { key: 'all',       label: 'Все' },
+    { key: 'pending',   label: 'Ожидает' },
+    { key: 'cooking',   label: 'Готовится' },
+    { key: 'ready',     label: 'Готово' },
+    { key: 'picked',    label: 'Забрано' },
+    { key: 'cancelled', label: 'Отменён' },
   ];
 
   statusLabels: Record<string, string> = {
-    pending:   'Готовится',
+    pending:   'Ожидает',
+    cooking:   'Готовится',
     ready:     'Готово к выдаче',
     picked:    'Забрано',
     cancelled: 'Отменён',
   };
 
-  constructor(private orderService: OrderService) {}
+  constructor(
+    private orderService: OrderService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
-  ngOnInit(): void {
-    this.loadOrders();
-  }
+  ngOnInit(): void { this.loadOrders(); }
 
   loadOrders(): void {
     this.isLoading = true;
     this.errorMessage = '';
-
     this.orderService.getMyOrders().subscribe({
       next: (data: Order[]) => {
         this.orders = data;
         this.applyFilter();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
-      error: (err: unknown) => {
+      error: () => {
         this.errorMessage = 'Не удалось загрузить заказы. Попробуйте снова.';
         this.isLoading = false;
-        console.error('Orders load error:', err);
+        this.cdr.detectChanges();
       }
     });
   }
 
-  switchTab(tab: StatusFilter): void {
-    this.activeTab = tab;
-    this.applyFilter();
-  }
+  switchTab(tab: StatusFilter): void { this.activeTab = tab; this.applyFilter(); }
 
   applyFilter(): void {
     this.filteredOrders = this.activeTab === 'all'
@@ -73,6 +73,7 @@ export class OrdersPageComponent implements OnInit {
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
       pending:   'status-pending',
+      cooking:   'status-cooking',
       ready:     'status-ready',
       picked:    'status-picked',
       cancelled: 'status-cancelled',
@@ -81,14 +82,15 @@ export class OrdersPageComponent implements OnInit {
   }
 
   getOrderTotal(order: Order): number {
-    return order.items.reduce((sum: number, item: { price: number; quantity: number }) =>
-      sum + item.price * item.quantity, 0);
+    return order.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
   }
+
+  canCancel(order: Order): boolean { return order.status === 'pending'; }
 
   reorder(order: Order): void {
     this.orderService.reorder(order.id).subscribe({
       next: () => this.loadOrders(),
-      error: (err: unknown) => console.error('Reorder error:', err)
+      error: () => this.errorMessage = 'Не удалось повторить заказ'
     });
   }
 
@@ -96,11 +98,9 @@ export class OrdersPageComponent implements OnInit {
     if (!confirm('Отменить заказ?')) return;
     this.orderService.cancelOrder(order.id).subscribe({
       next: () => this.loadOrders(),
-      error: (err: unknown) => console.error('Cancel error:', err)
+      error: () => this.errorMessage = 'Не удалось отменить заказ'
     });
   }
 
-  trackById(_index: number, order: Order): number {
-    return order.id;
-  }
+  trackById(_index: number, order: Order): number { return order.id; }
 }

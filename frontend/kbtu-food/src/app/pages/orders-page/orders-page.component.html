@@ -91,7 +91,7 @@
                 <span class="pickup-icon">🕐</span>
                 <div>
                   <div class="pickup-label">Самовывоз в</div>
-                  <div class="pickup-time">{{ order.pickup_time }}</div>
+                  <div class="pickup-time">{{ order.pickup_time | date:'HH:mm' }}</div>
                 </div>
               </div>
               <div class="total-block">
