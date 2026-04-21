@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -37,6 +37,7 @@ export class MenuPageComponent implements OnInit {
   constructor(
     private menuService: MenuService,
     public cartService: CartService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -46,7 +47,10 @@ export class MenuPageComponent implements OnInit {
 
   loadCafes(): void {
     this.menuService.getCafes().subscribe({
-      next: (data: Cafe[]) => { this.cafes = data; },
+      next: (data: Cafe[]) => {
+        this.cafes = data;
+        this.cdr.detectChanges();
+      },
       error: (err: unknown) => console.error('Cafes error:', err),
     });
   }
@@ -58,10 +62,12 @@ export class MenuPageComponent implements OnInit {
         this.menuItems = data;
         this.applyFilters();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: unknown) => {
         this.errorMessage = 'Не удалось загрузить меню. Попробуйте снова.';
         this.isLoading = false;
+        this.cdr.detectChanges();
         console.error('Menu error:', err);
       }
     });
