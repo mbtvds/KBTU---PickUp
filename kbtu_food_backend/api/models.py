@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from django.contrib.auth.models import UserManager   # ← важно!
+from django.contrib.auth.models import UserManager   
 
 class CustomUserManager(UserManager):
     """Менеджер для CustomUser"""
@@ -16,7 +16,7 @@ class CustomUser(AbstractUser):
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
     
-    objects = CustomUserManager()          # ← должно быть именно так
+    objects = CustomUserManager()          
 
     def __str__(self):
         return f"{self.username} ({self.role})"
@@ -74,3 +74,21 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.menu_item.name}"
+    
+class Review(models.Model):
+    """Отзыв студента о блюде с рейтингом от 1 до 5"""
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE, related_name='reviews')
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        help_text='Рейтинг от 1 до 5 звёзд'
+    )
+    comment = models.TextField(blank=True, help_text='Комментарий к отзыву')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('menu_item', 'student')
+
+    def __str__(self):
+        return f"{self.student.username} → {self.menu_item.name}: {self.rating}⭐"
