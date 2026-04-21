@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .models import CustomUser, Cafe, MenuItem, Order, OrderItem
-from .serializers import LoginSerializer, CafeSerializer, MenuItemSerializer, OrderSerializer
+from .models import CustomUser, Cafe, MenuItem, Order, OrderItem, Review
+from .serializers import LoginSerializer, CafeSerializer, MenuItemSerializer, OrderSerializer, ReviewSerializer
 
 # ==================== AUTH ====================
 @api_view(['POST'])
@@ -186,3 +186,110 @@ def public_menu_view(request):
 
     serializer = MenuItemSerializer(items, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def kitchen_profile_view(request):
+    if request.user.role != 'kitchen':
+        return Response({'detail': 'Forbidden'}, status=403)
+
+    try:
+        cafe = request.user.cafe
+    except Cafe.DoesNotExist:
+        return Response({'detail': 'Cafe not assigned'}, status=404)
+
+    if request.method == 'GET':
+        return Response({
+            'name': cafe.name,
+            'emoji': cafe.emoji,
+            'floor': cafe.floor
+        })
+
+    cafe.name = request.data.get('name', cafe.name)
+    cafe.emoji = request.data.get('emoji', cafe.emoji)
+    cafe.floor = request.data.get('floor', cafe.floor)
+    cafe.save()
+
+    return Response({
+        'name': cafe.name,
+        'emoji': cafe.emoji,
+        'floor': cafe.floor
+    })
+
+
+# ==================== REVIEWS ====================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def menu_item_reviews_view(request, pk):
+    """Получить все отзывы конкретного блюда"""
+    try:
+        menu_item = MenuItem.objects.get(pk=pk)
+    except MenuItem.DoesNotExist:
+        return Response({'detail': 'Menu item not found'}, status=404)
+
+    reviews = menu_item.reviews.all()
+    serializer = ReviewSerializer(reviews, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_review_view(request, pk):
+    """Оставить отзыв на блюдо (только студенты)"""
+    if request.user.role != 'student':
+        return Response({'detail': 'Only students can leave reviews'}, status=403)
+
+    try:
+        menu_item = MenuItem.objects.get(pk=pk)
+    except MenuItem.DoesNotExist:
+        return Response({'detail': 'Menu item not found'}, status=404)
+
+    if Review.objects.filter(menu_item=menu_item, student=request.user).exists():
+        return Response({'detail': 'You already reviewed this item'}, status=400)
+
+    rating = request.data.get('rating')
+    comment = request.data.get('comment', '')
+
+    if not rating or int(rating) < 1 or int(rating) > 5:
+        return Response({'detail': 'Rating must be between 1 and 5'}, status=400)
+
+    review = Review.objects.create(
+        menu_item=menu_item,
+        student=request.user,
+        rating=rating,
+        comment=comment,
+    )
+    serializer = ReviewSerializer(review)
+    return Response(serializer.data, status=201)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_review_view(request, pk):
+    """Удалить свой отзыв"""
+    try:
+        review = Review.objects.get(pk=pk, student=request.user)
+    except Review.DoesNotExist:
+        return Response({'detail': 'Review not found'}, status=404)
+    review.delete()
+    return Response(status=204)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def menu_item_rating_view(request, pk):
+    """Получить средний рейтинг блюда и количество отзывов"""
+    try:
+        menu_item = MenuItem.objects.get(pk=pk)
+    except MenuItem.DoesNotExist:
+        return Response({'detail': 'Menu item not found'}, status=404)
+
+    reviews = menu_item.reviews.all()
+    count = reviews.count()
+
+    if count == 0:
+        return Response({'rating': 0, 'count': 0})
+
+    avg = sum(r.rating for r in reviews) / count
+    return Response({'rating': round(avg, 1), 'count': count})

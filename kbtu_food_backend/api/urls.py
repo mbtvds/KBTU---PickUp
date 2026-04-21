@@ -25,4 +25,13 @@ urlpatterns = [
     # Для меню (используется фронтендом)
     path('menu-items/', views.public_menu_view),
     path('menu-items/<int:pk>/', views.kitchen_menu_detail_view),
+
+    path('kitchen/profile/', views.kitchen_profile_view),
+
+
+    # Отзывы
+    path('menu-items/<int:pk>/reviews/', views.menu_item_reviews_view, name='menu-item-reviews'),
+    path('menu-items/<int:pk>/reviews/create/', views.create_review_view, name='create-review'),
+    path('menu-items/<int:pk>/rating/', views.menu_item_rating_view, name='menu-item-rating'),
+    path('reviews/<int:pk>/delete/', views.delete_review_view, name='delete-review'),
 ]
