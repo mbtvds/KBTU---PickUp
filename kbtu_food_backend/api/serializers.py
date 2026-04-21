@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Cafe, MenuItem, Order, OrderItem
+from .models import CustomUser, Cafe, MenuItem, Order, OrderItem, Review
 
 # Простые сериализаторы
 class LoginSerializer(serializers.Serializer):
@@ -34,3 +34,11 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ['id', 'cafe_name', 'cafe_icon', 'status', 'items',
                   'pickup_time', 'note', 'pay_method', 'created_at']
+    
+class ReviewSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.username', read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ['id', 'menu_item', 'student', 'student_name', 'rating', 'comment', 'created_at']
+        read_only_fields = ['student', 'student_name', 'created_at']
