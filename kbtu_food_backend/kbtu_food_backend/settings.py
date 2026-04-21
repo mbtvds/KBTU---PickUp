@@ -100,3 +100,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 # ====================== CUSTOM USER ======================
 AUTH_USER_MODEL = 'api.CustomUser'
+AUTHENTICATION_BACKENDS = [
+    'api.backends.EmailBackend',
+]
