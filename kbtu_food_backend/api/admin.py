@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomUser, Cafe, MenuItem, Order, OrderItem
+from .models import CustomUser, Cafe, MenuItem, Order, OrderItem, Review
 
 
 @admin.register(CustomUser)
@@ -32,3 +32,9 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'student', 'cafe', 'status', 'pickup_time', 'created_at')
     list_filter = ('status', 'cafe')
     inlines = [OrderItemInline]
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('student', 'menu_item', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('student__username', 'menu_item__name', 'comment')
