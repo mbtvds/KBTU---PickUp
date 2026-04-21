@@ -13,11 +13,11 @@ class CafeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'emoji', 'floor']
 
 class MenuItemSerializer(serializers.ModelSerializer):
-    cafe_name = serializers.CharField(source='cafe.name', read_only=True)
+    cafe = serializers.PrimaryKeyRelatedField(read_only=True)
+    
     class Meta:
         model = MenuItem
-        fields = ['id', 'cafe', 'cafe_name', 'name', 'description', 'emoji',
-                  'price', 'category', 'tags', 'is_available']
+        fields = '__all__'
 
 class OrderItemSerializer(serializers.ModelSerializer):
     menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)

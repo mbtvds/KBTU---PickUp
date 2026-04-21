@@ -20,7 +20,8 @@ def login_view(request):
             refresh = RefreshToken.for_user(user)
             return Response({
                 'access': str(refresh.access_token),
-                'refresh': str(refresh)
+                'refresh': str(refresh),
+                'role': user.role
             })
     return Response({'detail': 'Invalid credentials'}, status=401)
 
@@ -71,7 +72,7 @@ def kitchen_menu_view(request):
     elif request.method == 'POST':
         serializer = MenuItemSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(cafe=request.user.cafe)
+            serializer.save(cafe=request.user.cafe) 
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 

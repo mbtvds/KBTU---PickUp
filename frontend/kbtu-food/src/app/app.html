@@ -1,1 +1,13 @@
+@if (isLoggedIn) {
+  <nav class="navbar">
+    <div class="nav-logo">KBTU<span>food</span></div>
+    <div class="nav-links">
+      <a routerLink="/menu">Меню</a>
+      <a routerLink="/orders">Заказы</a>
+      <a routerLink="/cart">Корзина</a>
+    </div>
+    <button class="logout-btn" (click)="logout()">Выйти</button>
+  </nav>
+}
+
 <router-outlet />
