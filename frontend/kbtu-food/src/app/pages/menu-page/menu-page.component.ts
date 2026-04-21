@@ -140,21 +140,22 @@ export class MenuPageComponent implements OnInit {
     if (!this.reviewModalItem) return;
     this.reviewModalError = '';
     this.reviewModalSubmitting = true;
+    const itemId = this.reviewModalItem.id; // сохраняем до закрытия модалки
 
-    this.reviewService.createReview(this.reviewModalItem.id, {
+    this.reviewService.createReview(itemId, {
       rating: this.reviewModalRating,
       comment: this.reviewModalComment,
     }).subscribe({
       next: () => {
-        // обновляем рейтинг карточки
-        this.reviewService.getRating(this.reviewModalItem!.id).subscribe({
+        this.closeReviewModal();
+        // обновляем рейтинг карточки после закрытия
+        this.reviewService.getRating(itemId).subscribe({
           next: (s) => {
-            this.ratings[this.reviewModalItem!.id] = s;
+            this.ratings[itemId] = s;
             this.cdr.detectChanges();
           },
           error: () => {}
         });
-        this.closeReviewModal();
       },
       error: (err) => {
         this.reviewModalError = err?.error?.detail ?? 'Ошибка при отправке отзыва';
