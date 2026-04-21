@@ -23,6 +23,6 @@ urlpatterns = [
     path('admin/kitchens/', views.AdminKitchenView.as_view()),
 
     # Для меню (используется фронтендом)
-    path('menu-items/', views.kitchen_menu_view),
+    path('menu-items/', views.public_menu_view),
     path('menu-items/<int:pk>/', views.kitchen_menu_detail_view),
 ]

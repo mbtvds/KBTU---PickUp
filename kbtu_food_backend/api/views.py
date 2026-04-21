@@ -168,3 +168,21 @@ class AdminKitchenView(APIView):
             floor=request.data.get('floor', '1')
         )
         return Response(CafeSerializer(cafe).data, status=201)
+    
+
+# Публичное меню для студентов (только чтение, без role check)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def public_menu_view(request):
+    items = MenuItem.objects.filter(is_available=True)
+
+    cafe_id = request.query_params.get('cafe')
+    category = request.query_params.get('category')
+
+    if cafe_id:
+        items = items.filter(cafe_id=cafe_id)
+    if category:
+        items = items.filter(category=category)
+
+    serializer = MenuItemSerializer(items, many=True)
+    return Response(serializer.data)
