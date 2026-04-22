@@ -9,7 +9,7 @@ urlpatterns = [
     # Общие
     path('cafes/', views.CafeListView.as_view()),
 
-    # Студент — GET + POST 
+    # Студент
     path('orders/', views.orders_view),
     path('orders/<int:pk>/cancel/', views.cancel_order_view),
     path('orders/<int:pk>/reorder/', views.reorder_view),

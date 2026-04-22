@@ -32,6 +32,7 @@ class Cafe(models.Model):
         return self.name
 
 class MenuItem(models.Model):
+    image = models.ImageField(upload_to='menu_images/', blank=True, null=True)
     cafe = models.ForeignKey(Cafe, on_delete=models.CASCADE, related_name='menu_items')
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)

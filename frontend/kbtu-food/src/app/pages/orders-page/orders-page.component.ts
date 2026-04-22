@@ -37,11 +37,10 @@ export class OrdersPageComponent implements OnInit {
     cancelled: 'Отменён',
   };
 
-  constructor(
+constructor(
     private orderService: OrderService,
     private cdr: ChangeDetectorRef,
   ) {}
-
   ngOnInit(): void { this.loadOrders(); }
 
   loadOrders(): void {
@@ -64,11 +63,12 @@ export class OrdersPageComponent implements OnInit {
 
   switchTab(tab: StatusFilter): void { this.activeTab = tab; this.applyFilter(); }
 
-  applyFilter(): void {
+applyFilter(): void {
     this.filteredOrders = this.activeTab === 'all'
-      ? this.orders
+      ? [...this.orders]
       : this.orders.filter((o: Order) => o.status === this.activeTab);
   }
+  
 
   getStatusClass(status: string): string {
     const map: Record<string, string> = {

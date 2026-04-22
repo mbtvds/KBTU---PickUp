@@ -102,4 +102,8 @@ CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'api.CustomUser'
 AUTHENTICATION_BACKENDS = [
     'api.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
