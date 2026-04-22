@@ -20,6 +20,7 @@ export interface MenuItem {
   category: string;
   tags: string[];
   is_available: boolean;
+  image: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

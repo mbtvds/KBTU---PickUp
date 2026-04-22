@@ -58,7 +58,7 @@
                   }
                 </div>
                 <div class="order-pickup">
-                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time }}</span>
+                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time | date:'HH:mm' }}</span>
                 </div>
                 @if (order.note) {
                   <div class="order-note">💬 {{ order.note }}</div>
@@ -93,7 +93,7 @@
                   }
                 </div>
                 <div class="order-pickup">
-                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time }}</span>
+                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time | date:'HH:mm' }}</span>
                 </div>
                 <!-- Click event #2 -->
                 <button class="btn-action btn-ready" (click)="markReady(order)">
@@ -125,7 +125,7 @@
                   }
                 </div>
                 <div class="order-pickup">
-                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time }}</span>
+                  🕐 Самовывоз в <span class="pickup-time">{{ order.pickup_time | date:'HH:mm' }}</span>
                 </div>
                 <!-- Click event #3 -->
                 <button class="btn-action btn-done" (click)="markPicked(order)">
@@ -156,7 +156,13 @@
         <div class="menu-grid">
           @for (item of menuItems; track trackById($index, item)) {
             <div class="menu-card">
-              <div class="menu-card-img">{{ item.emoji }}</div>
+              <div class="menu-card-img">
+                @if (item.image) {
+                  <img [src]="'http://localhost:8000' + item.image" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+                } @else {
+                  {{ item.emoji }}
+                }
+              </div>
               <div class="menu-card-body">
                 <div class="menu-card-name">{{ item.name }}</div>
                 <div class="menu-card-desc">{{ item.description }}</div>
@@ -258,12 +264,20 @@
           }
         </select>
       </div>
+      <!-- Фото -->
+      <div class="form-group">
+        <label class="form-label">Фото блюда</label>
+        <input class="form-input" type="file" accept="image/*" (change)="onImageSelected($event)">
+          @if (dishImagePreview) {
+            <img [src]="dishImagePreview" style="width:100%; margin-top:8px; border-radius:8px; max-height:150px; object-fit:cover;">
+          }
+      </div>
 
       <div class="modal-actions">
         <button class="btn-cancel" (click)="showDishModal = false">Отмена</button>
         <button class="btn-primary" [disabled]="isSavingDish" (click)="saveDish()">
           {{ isSavingDish ? 'Сохраняем...' : (isEditingDish ? 'Сохранить' : 'Добавить') }}
-        </button>
+        </button> 
       </div>
     </div>
   </div>

@@ -14,10 +14,13 @@ class CafeSerializer(serializers.ModelSerializer):
 
 class MenuItemSerializer(serializers.ModelSerializer):
     cafe = serializers.PrimaryKeyRelatedField(read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True)
+
     
     class Meta:
         model = MenuItem
         fields = '__all__'
+    
 
 class OrderItemSerializer(serializers.ModelSerializer):
     menu_item_name = serializers.CharField(source='menu_item.name', read_only=True)

@@ -78,8 +78,13 @@
           @for (item of filteredItems; track trackById($index, item)) {
             <div class="menu-card" [style.animation-delay]="$index * 0.04 + 's'">
 
-              <div class="card-img">{{ item.emoji }}</div>
-
+            <div class="card-img">
+              @if (item.image) {
+                <img [src]="'http://localhost:8000' + item.image" style="width:100%; height:100%; object-fit:cover;">
+              } @else {
+                {{ item.emoji }}
+              }
+            </div>
               <div class="card-body">
                 <div class="card-name">{{ item.name }}</div>
                 <div class="card-desc">{{ item.description }}</div>

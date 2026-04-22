@@ -10,8 +10,7 @@ urlpatterns = [
     path('cafes/', views.CafeListView.as_view()),
 
     # Студент
-    path('orders/', views.my_orders_view, name='my-orders'),
-    path('orders/', views.create_order_view, name='create-order'),   # POST
+    path('orders/', views.orders_view, name='orders'),
 
     # Кухня
     path('kitchen/orders/', views.KitchenOrdersView.as_view()),

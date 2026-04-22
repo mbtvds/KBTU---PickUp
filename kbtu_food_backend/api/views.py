@@ -72,7 +72,7 @@ def kitchen_menu_view(request):
     elif request.method == 'POST':
         serializer = MenuItemSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(cafe=request.user.cafe) 
+            serializer.save(cafe=request.user.cafe, is_available=True)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
 
@@ -98,12 +98,44 @@ def kitchen_menu_detail_view(request, pk):
         return Response(status=204)
 
 # Student Orders
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
-def my_orders_view(request):
-    orders = Order.objects.filter(student=request.user)
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+def orders_view(request):
+    if request.method == 'GET':
+        orders = Order.objects.filter(student=request.user)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+    
+    # POST - создать заказ
+    if request.user.role != 'student':
+        return Response({'detail': 'Forbidden'}, status=403)
+
+    cafe = Cafe.objects.get(pk=request.data['cafe'])
+    from datetime import datetime, date
+
+    cafe = Cafe.objects.get(pk=request.data['cafe'])
+    pickup_time_str = request.data['pickup_time']
+    today = date.today()
+    pickup_time = datetime.strptime(f"{today} {pickup_time_str}", "%Y-%m-%d %H:%M")
+
+    order = Order.objects.create(
+        student=request.user,
+        cafe=cafe,
+        pickup_time=pickup_time,
+        note=request.data.get('note', ''),
+        pay_method=request.data.get('pay_method', 'cash')
+    )
+
+    for item in request.data['items']:
+        OrderItem.objects.create(
+            order=order,
+            menu_item_id=item['menu_item'],
+            quantity=item['quantity'],
+            note=item.get('note', '')
+        )
+
+    serializer = OrderSerializer(order)
+    return Response(serializer.data, status=201)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -112,14 +144,20 @@ def create_order_view(request):
         return Response({'detail': 'Forbidden'}, status=403)
 
     cafe = Cafe.objects.get(pk=request.data['cafe'])
+    from datetime import datetime, date
+
+    cafe = Cafe.objects.get(pk=request.data['cafe'])
+    pickup_time_str = request.data['pickup_time']
+    today = date.today()
+    pickup_time = datetime.strptime(f"{today} {pickup_time_str}", "%Y-%m-%d %H:%M")
+
     order = Order.objects.create(
         student=request.user,
         cafe=cafe,
-        pickup_time=request.data['pickup_time'],
+        pickup_time=pickup_time,
         note=request.data.get('note', ''),
         pay_method=request.data.get('pay_method', 'cash')
     )
-
     for item in request.data['items']:
         OrderItem.objects.create(
             order=order,

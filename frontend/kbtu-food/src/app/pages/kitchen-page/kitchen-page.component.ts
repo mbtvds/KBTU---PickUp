@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { KitchenService, KitchenOrder, KitchenMenuItem } from '../../services/kitchen.service';
 import { interval, Subscription } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';
+
 
 type Page = 'orders' | 'menu' | 'profile';
 
@@ -38,6 +40,9 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   dishPrice    = 0;   // #4
   dishCategory = 'drinks'; // #5
 
+  dishImage: File | null = null;
+  dishImagePreview: string | null = null;
+
   // Profile
   profileName  = '';  // [(ngModel)] #6
   profileEmoji = '';  // [(ngModel)] #7
@@ -57,9 +62,10 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   private pollSub?: Subscription;
 
   constructor(
-    private kitchenService: KitchenService,
-    private router: Router,
-  ) {}
+      private kitchenService: KitchenService,
+      private router: Router,
+      private cdr: ChangeDetectorRef,
+    ) {}
 
   ngOnInit(): void {
     this.loadOrders();
@@ -82,14 +88,15 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   // ── Orders ──────────────────────────────────────────────────
 
   loadOrders(): void {
-    this.kitchenService.getOrders().subscribe({
-      next: (data: KitchenOrder[]) => {
-        this.orders = data;
-        this.isLoadingOrders = false;
-      },
-      error: (err: unknown) => { this.isLoadingOrders = false; console.error(err); }
-    });
-  }
+      this.kitchenService.getOrders().subscribe({
+        next: (data: KitchenOrder[]) => {
+          this.orders = [...data];
+          this.isLoadingOrders = false;
+          this.cdr.detectChanges();
+        },
+        error: (err: unknown) => { this.isLoadingOrders = false; this.cdr.detectChanges(); console.error(err); }
+      });
+    }
 
   get newOrders():     KitchenOrder[] { return this.orders.filter(o => o.status === 'pending'); }
   get cookingOrders(): KitchenOrder[] { return this.orders.filter(o => o.status === 'cooking'); }
@@ -124,8 +131,8 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   loadMenu(): void {
     this.isLoadingMenu = true;
     this.kitchenService.getMenu().subscribe({
-      next: (data: KitchenMenuItem[]) => { this.menuItems = data; this.isLoadingMenu = false; },
-      error: (err: unknown) => { this.isLoadingMenu = false; console.error(err); }
+      next: (data: KitchenMenuItem[]) => { this.menuItems = [...data]; this.isLoadingMenu = false; this.cdr.detectChanges(); },
+      error: (err: unknown) => { this.isLoadingMenu = false; this.cdr.detectChanges(); console.error(err); }
     });
   }
 
@@ -136,6 +143,8 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
     this.dishPrice = 0;
     this.dishCategory = 'drinks';
     this.showDishModal = true;
+    this.dishImage = null;
+    this.dishImagePreview = null;
   }
 
   openEditDish(item: KitchenMenuItem): void {
@@ -148,21 +157,31 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
     this.dishCategory = item.category;
     this.showDishModal = true;
   }
-
+  onImageSelected(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    this.dishImage = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => this.dishImagePreview = e.target?.result as string;
+    reader.readAsDataURL(this.dishImage);
+  }
+}
   // Click event #4 — сохранить блюдо
   saveDish(): void {
     if (!this.dishName.trim() || !this.dishPrice) return;
     this.isSavingDish = true;
 
-    const payload = {
-      name: this.dishName, description: this.dishDesc,
-      emoji: this.dishEmoji || '🍽️', price: this.dishPrice,
-      category: this.dishCategory,
-    };
+  const formData = new FormData();
+  formData.append('name', this.dishName);
+  formData.append('description', this.dishDesc);
+  formData.append('emoji', this.dishEmoji || '🍽️');
+  formData.append('price', this.dishPrice.toString());
+  formData.append('category', this.dishCategory);
+  if (this.dishImage) formData.append('image', this.dishImage);
 
-    const req$ = this.isEditingDish && this.editDishId
-      ? this.kitchenService.updateMenuItem(this.editDishId, payload)
-      : this.kitchenService.createMenuItem(payload);
+  const req$ = this.isEditingDish && this.editDishId
+    ? this.kitchenService.updateMenuItem(this.editDishId, formData)
+    : this.kitchenService.createMenuItem(formData);
 
     req$.subscribe({
       next: () => {

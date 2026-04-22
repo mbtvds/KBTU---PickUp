@@ -75,6 +75,7 @@ export class CartPageComponent implements OnInit {
     this.errorMessage = '';
 
     const payload = {
+      cafe: this.items[0].item.cafe,
       items: this.items.map((ci: CartItem) => ({
         menu_item: ci.item.id,
         quantity:  ci.quantity,

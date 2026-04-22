@@ -28,8 +28,13 @@
           @for (ci of items; track trackById($index, ci)) {
             <div class="cart-item" [style.animation-delay]="$index * 0.05 + 's'">
 
-              <div class="item-emoji">{{ ci.item.emoji }}</div>
-
+            <div class="item-emoji">
+              @if (ci.item.image) {
+                <img [src]="'http://localhost:8000' + ci.item.image" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+              } @else {
+                {{ ci.item.emoji }}
+              }
+            </div>
               <div class="item-info">
                 <div class="item-name">{{ ci.item.name }}</div>
                 <div class="item-cafe">{{ ci.item.cafe_name }}</div>

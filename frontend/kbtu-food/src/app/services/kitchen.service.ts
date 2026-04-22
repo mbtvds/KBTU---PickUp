@@ -27,6 +27,7 @@ export interface KitchenMenuItem {
   price: number;
   category: string;
   is_available: boolean;
+  image: string | null;
 }
 
 export interface MenuItemPayload {
@@ -60,12 +61,11 @@ export class KitchenService {
   }
 
   // POST /api/kitchen/menu/
-  createMenuItem(payload: MenuItemPayload): Observable<KitchenMenuItem> {
+  createMenuItem(payload: FormData | MenuItemPayload): Observable<KitchenMenuItem> {
     return this.http.post<KitchenMenuItem>(`${this.api}/kitchen/menu/`, payload);
   }
 
-  // PUT /api/kitchen/menu/{id}/
-  updateMenuItem(id: number, payload: Partial<MenuItemPayload>): Observable<KitchenMenuItem> {
+  updateMenuItem(id: number, payload: FormData | Partial<MenuItemPayload>): Observable<KitchenMenuItem> {
     return this.http.put<KitchenMenuItem>(`${this.api}/kitchen/menu/${id}/`, payload);
   }
 

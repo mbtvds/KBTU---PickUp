@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { OrderService } from '../../services/order.service';
@@ -35,7 +35,7 @@ export class OrdersPageComponent implements OnInit {
     cancelled: 'Отменён',
   };
 
-  constructor(private orderService: OrderService) {}
+constructor(private orderService: OrderService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadOrders();
@@ -50,6 +50,7 @@ export class OrdersPageComponent implements OnInit {
         this.orders = data;
         this.applyFilter();
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err: unknown) => {
         this.errorMessage = 'Не удалось загрузить заказы. Попробуйте снова.';
@@ -64,11 +65,12 @@ export class OrdersPageComponent implements OnInit {
     this.applyFilter();
   }
 
-  applyFilter(): void {
+applyFilter(): void {
     this.filteredOrders = this.activeTab === 'all'
-      ? this.orders
+      ? [...this.orders]
       : this.orders.filter((o: Order) => o.status === this.activeTab);
   }
+  
 
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
