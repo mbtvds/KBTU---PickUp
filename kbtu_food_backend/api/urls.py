@@ -10,27 +10,27 @@ urlpatterns = [
     path('cafes/', views.CafeListView.as_view()),
 
     # Студент
-    path('orders/', views.orders_view, name='orders'),
+    path('orders/', views.orders_view),
+    path('orders/<int:pk>/cancel/', views.cancel_order_view),
+    path('orders/<int:pk>/reorder/', views.reorder_view),
 
     # Кухня
     path('kitchen/orders/', views.KitchenOrdersView.as_view()),
     path('kitchen/orders/<int:pk>/', views.kitchen_order_status_view),
     path('kitchen/menu/', views.kitchen_menu_view),
     path('kitchen/menu/<int:pk>/', views.kitchen_menu_detail_view),
+    path('kitchen/profile/', views.kitchen_profile_view),
 
     # Админ
     path('admin/kitchens/', views.AdminKitchenView.as_view()),
 
-    # Для меню (используется фронтендом)
+    # Публичное меню
     path('menu-items/', views.public_menu_view),
     path('menu-items/<int:pk>/', views.kitchen_menu_detail_view),
 
-    path('kitchen/profile/', views.kitchen_profile_view),
-
-
     # Отзывы
-    path('menu-items/<int:pk>/reviews/', views.menu_item_reviews_view, name='menu-item-reviews'),
-    path('menu-items/<int:pk>/reviews/create/', views.create_review_view, name='create-review'),
-    path('menu-items/<int:pk>/rating/', views.menu_item_rating_view, name='menu-item-rating'),
-    path('reviews/<int:pk>/delete/', views.delete_review_view, name='delete-review'),
+    path('menu-items/<int:pk>/reviews/', views.menu_item_reviews_view),
+    path('menu-items/<int:pk>/reviews/create/', views.create_review_view),
+    path('menu-items/<int:pk>/rating/', views.menu_item_rating_view),
+    path('reviews/<int:pk>/delete/', views.delete_review_view),
 ]

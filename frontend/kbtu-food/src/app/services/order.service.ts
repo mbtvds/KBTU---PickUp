@@ -7,19 +7,23 @@ export interface OrderItem {
   menu_item_name: string;
   quantity: number;
   price: number;
+  note: string;
 }
 
 export interface Order {
   id: number;
   cafe_name: string;
   cafe_icon: string;
-  status: 'pending' | 'ready' | 'picked' | 'cancelled';
+  status: 'pending' | 'cooking' | 'ready' | 'picked' | 'cancelled';
   items: OrderItem[];
   pickup_time: string;
+  note: string;
+  pay_method: string;
   created_at: string;
 }
 
 export interface CreateOrderPayload {
+  cafe?: number;
   items: { menu_item: number; quantity: number; note: string }[];
   pickup_time: string;
   pay_method: string;
@@ -46,6 +50,6 @@ export class OrderService {
   }
 
   cancelOrder(orderId: number): Observable<Order> {
-    return this.http.patch<Order>(`${this.api}/orders/${orderId}/`, { status: 'cancelled' });
+    return this.http.patch<Order>(`${this.api}/orders/${orderId}/cancel/`, {});
   }
 }

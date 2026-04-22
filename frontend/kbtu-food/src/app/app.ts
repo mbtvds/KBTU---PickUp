@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
+import { CartService } from './services/cart.service';
 
 @Component({
   selector: 'app-root',
@@ -11,10 +12,22 @@ import { AuthService } from './services/auth.service';
   styleUrl: './app.css'
 })
 export class App {
-  constructor(private authService: AuthService) {}
+
+  constructor(
+    private authService: AuthService,
+    public cartService: CartService,
+  ) {}
 
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
+  }
+
+  get cartCount(): number {
+    return this.cartService.count();
+  }
+
+  get cartTotal(): number {
+    return this.cartService.total();
   }
 
   logout() {

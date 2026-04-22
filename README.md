@@ -8,3 +8,5 @@ This is our Web-Dev project for attestation 2. Our project includes online servi
 Akzhigitov Abilkaiyr
 
 Umbetov Dias
+
+Kairbek Abulkhair

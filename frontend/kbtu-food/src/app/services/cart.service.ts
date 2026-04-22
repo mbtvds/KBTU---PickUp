@@ -16,8 +16,17 @@ export class CartService {
   readonly total   = computed(() => this._items().reduce((s: number, c: CartItem) => s + c.item.price * c.quantity, 0));
   readonly isEmpty = computed(() => this._items().length === 0);
 
+  /** Название кафе текущей корзины (undefined если пустая) */
+  get activeCafeName(): string | undefined {
+    return this._items()[0]?.item.cafe_name;
+  }
+
   addItem(item: MenuItem): void {
     this._items.update((current: CartItem[]) => {
+      if (current.length > 0 && current[0].item.cafe !== item.cafe) {
+        alert(`Корзина содержит блюда из "${current[0].item.cafe_name}". Очистите корзину чтобы заказать из другого кафе.`);
+        return current;
+      }
       const idx = current.findIndex((c: CartItem) => c.item.id === item.id);
       if (idx > -1) {
         const updated = [...current];

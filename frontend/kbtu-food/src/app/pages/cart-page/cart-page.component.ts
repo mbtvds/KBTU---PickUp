@@ -2,8 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { CartService } from '../../services/cart.service';
-import { CartItem } from '../../services/cart.service';
+import { CartService, CartItem } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
 
 @Component({
@@ -43,30 +42,29 @@ export class CartPageComponent implements OnInit {
     });
   }
 
-  get items(): CartItem[] {
-    return this.cartService.items();
-  }
-
-  get total(): number {
-    return this.cartService.total();
-  }
+  get items(): CartItem[] { return this.cartService.items(); }
+  get total(): number { return this.cartService.total(); }
 
   get uniqueCafes(): string[] {
-    return [...new Set(this.items.map((ci: CartItem) => ci.item.cafe_name))];
+    return [...new Set(this.items.map((ci: CartItem) => ci.item.cafe_name ?? 'Кафе'))];
   }
 
-  changeQty(itemId: number, delta: number): void {
-    this.cartService.changeQuantity(itemId, delta);
+  get cafeId(): number | undefined {
+    return this.items[0]?.item.cafe;
   }
 
-  removeItem(itemId: number): void {
-    this.cartService.removeItem(itemId);
+  private _buildPickupDatetime(time: string): string {
+    const today = new Date();
+    const [hours, minutes] = time.split(':');
+    today.setHours(+hours, +minutes, 0, 0);
+    return today.toISOString();
   }
+
+  changeQty(itemId: number, delta: number): void { this.cartService.changeQuantity(itemId, delta); }
+  removeItem(itemId: number): void { this.cartService.removeItem(itemId); }
 
   clearCart(): void {
-    if (confirm('Очистить корзину?')) {
-      this.cartService.clear();
-    }
+    if (confirm('Очистить корзину?')) this.cartService.clear();
   }
 
   placeOrder(): void {
@@ -75,13 +73,13 @@ export class CartPageComponent implements OnInit {
     this.errorMessage = '';
 
     const payload = {
-      cafe: this.items[0].item.cafe,
+      cafe: this.cafeId,
       items: this.items.map((ci: CartItem) => ({
         menu_item: ci.item.id,
         quantity:  ci.quantity,
         note:      this.itemNotes[ci.item.id] ?? '',
       })),
-      pickup_time: this.pickupTime,
+      pickup_time: this._buildPickupDatetime(this.pickupTime),
       pay_method:  this.payMethod,
       note:        this.orderNote,
     };
@@ -91,15 +89,12 @@ export class CartPageComponent implements OnInit {
         this.cartService.clear();
         this.router.navigate(['/orders']);
       },
-      error: (err: unknown) => {
-        this.errorMessage = 'Не удалось оформить заказ. Попробуйте снова.';
+      error: (err: { error?: { detail?: string } }) => {
+        this.errorMessage = err?.error?.detail ?? 'Не удалось оформить заказ. Попробуйте снова.';
         this.isSubmitting = false;
-        console.error('Order error:', err);
       }
     });
   }
 
-  trackById(_i: number, ci: CartItem): number {
-    return ci.item.id;
-  }
+  trackById(_i: number, ci: CartItem): number { return ci.item.id; }
 }

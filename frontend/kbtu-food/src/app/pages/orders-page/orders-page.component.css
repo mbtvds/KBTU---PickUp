@@ -138,6 +138,7 @@
 .status-pending   { color: #e8c84a; border-color: #e8c84a; background: rgba(232,200,74,.08); }
 .status-ready     { color: #5ec27a; border-color: #5ec27a; background: rgba(94,194,122,.08); }
 .status-picked    { color: #7a7870; border-color: #7a7870; background: rgba(122,120,112,.08); }
+.status-cooking   { color: #f0923a; border-color: #f0923a; background: rgba(240,146,58,.08); }
 .status-cancelled { color: #e05a4a; border-color: #e05a4a; background: rgba(224,90,74,.08); }
 
 /* Ready banner */
