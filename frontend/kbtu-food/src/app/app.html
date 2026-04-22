@@ -11,3 +11,10 @@
 }
 
 <router-outlet />
+
+@if (isLoggedIn && cartCount > 0) {
+  <div class="cart-bar" routerLink="/cart">
+    <span class="cart-bar-info">{{ cartCount }} блюд на {{ cartTotal | number }} ₸</span>
+    <span class="cart-bar-action">Смотреть заказ →</span>
+  </div>
+}

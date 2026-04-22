@@ -32,3 +32,31 @@
   font-size: 13px;
 }
 .logout-btn:hover { color: #e05a4a; border-color: rgba(224,90,74,.3); }
+
+.cart-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 600px;
+  background: #1a1814;
+  color: #f0ede6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-radius: 16px;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  transition: transform .2s, opacity .2s;
+}
+.cart-bar:hover { transform: translateX(-50%) translateY(-2px); }
+.cart-bar-info { font-size: 14px; color: #c8c3b8; }
+.cart-bar-action {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8c84a;
+}
