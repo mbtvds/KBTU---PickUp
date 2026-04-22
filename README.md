@@ -26,6 +26,7 @@ KBTU PickUp allows students to browse cafeteria menus, place orders online, and 
 
 ## Project Structure
 
+```text
 KBTU-PickUp/
 ├── frontend/kbtu-food/        # Angular SPA
 │   └── src/app/
@@ -34,11 +35,12 @@ KBTU-PickUp/
 │       ├── guards/            # auth guard
 │       └── interceptors/      # JWT interceptor
 └── kbtu_food_backend/         # Django REST API
-└── api/
-├── models.py          # CustomUser, Cafe, MenuItem, Order, Review
-├── views.py           # FBV + CBV endpoints
-├── serializers.py
-└── urls.py
+    └── api/
+        ├── models.py          # CustomUser, Cafe, MenuItem, Order, Review
+        ├── views.py           # FBV + CBV endpoints
+        ├── serializers.py
+        └── urls.py
+```
 
 ## Getting Started
 
