@@ -33,7 +33,8 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   dishEmoji    = '';
   dishPrice    = 0;
   dishCategory = 'drinks';
-
+  dishImagePreview: string | null = null;
+  dishImageFile: File | null = null;
   profileName  = '';
   profileEmoji = '';
   profileFloor = '';
@@ -163,6 +164,17 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
     this.dishPrice = item.price;
     this.dishCategory = item.category;
     this.showDishModal = true;
+  }
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.dishImageFile = input.files[0];const reader = new FileReader();
+      reader.onload = (e) => {
+        this.dishImagePreview = e.target?.result as string;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
   }
 
   saveDish(): void {

@@ -62,7 +62,7 @@ class KitchenOrdersView(APIView):
     def get(self, request):
         if request.user.role != 'kitchen':
             return Response({'detail': 'Forbidden'}, status=403)
-        orders = Order.objects.filter(cafe=request.user.cafe).exclude(status='picked').order_by('-created_at')
+        orders = Order.objects.exclude(status='picked').order_by('-created_at')
         return Response(OrderSerializer(orders, many=True).data)
 
 
@@ -72,19 +72,25 @@ def kitchen_menu_view(request):
     if request.user.role != 'kitchen':
         return Response({'detail': 'Forbidden'}, status=403)
     if request.method == 'GET':
-        items = MenuItem.objects.filter(cafe=request.user.cafe)
-        serializer = MenuItemSerializer(items, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = MenuItemSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(cafe=request.user.cafe, is_available=True)
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+        items = MenuItem.objects.all()
         return Response(MenuItemSerializer(items, many=True).data)
+
+    # POST
+    cafe_id = request.data.get('cafe_id')
+    if cafe_id:
+        try:
+            cafe = Cafe.objects.get(pk=cafe_id)
+        except Cafe.DoesNotExist:
+            return Response({'detail': 'Cafe not found'}, status=404)
+    else:
+        try:
+            cafe = request.user.cafe
+        except Cafe.DoesNotExist:
+            return Response({'detail': 'Cafe not assigned'}, status=400)
+
     serializer = MenuItemSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(cafe=request.user.cafe)
+        serializer.save(cafe=cafe)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -93,7 +99,7 @@ def kitchen_menu_view(request):
 @permission_classes([IsAuthenticated])
 def kitchen_menu_detail_view(request, pk):
     try:
-        item = MenuItem.objects.get(pk=pk, cafe=request.user.cafe)
+        item = MenuItem.objects.get(pk=pk)
     except MenuItem.DoesNotExist:
         return Response(status=404)
     if request.method == 'GET':
@@ -108,79 +114,6 @@ def kitchen_menu_detail_view(request, pk):
         item.delete()
         return Response(status=204)
 
-# Student Orders
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def orders_view(request):
-    if request.method == 'GET':
-        orders = Order.objects.filter(student=request.user)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
-    
-    # POST - создать заказ
-    if request.user.role != 'student':
-        return Response({'detail': 'Forbidden'}, status=403)
-
-    cafe = Cafe.objects.get(pk=request.data['cafe'])
-    from datetime import datetime, date
-
-    cafe = Cafe.objects.get(pk=request.data['cafe'])
-    pickup_time_str = request.data['pickup_time']
-    today = date.today()
-    pickup_time = datetime.strptime(f"{today} {pickup_time_str}", "%Y-%m-%d %H:%M")
-
-    order = Order.objects.create(
-        student=request.user,
-        cafe=cafe,
-        pickup_time=pickup_time,
-        note=request.data.get('note', ''),
-        pay_method=request.data.get('pay_method', 'cash')
-    )
-
-    for item in request.data['items']:
-        OrderItem.objects.create(
-            order=order,
-            menu_item_id=item['menu_item'],
-            quantity=item['quantity'],
-            note=item.get('note', '')
-        )
-
-    serializer = OrderSerializer(order)
-    return Response(serializer.data, status=201)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_order_view(request):
-    if request.user.role != 'student':
-        return Response({'detail': 'Forbidden'}, status=403)
-
-    cafe = Cafe.objects.get(pk=request.data['cafe'])
-    from datetime import datetime, date
-
-    cafe = Cafe.objects.get(pk=request.data['cafe'])
-    pickup_time_str = request.data['pickup_time']
-    today = date.today()
-    pickup_time = datetime.strptime(f"{today} {pickup_time_str}", "%Y-%m-%d %H:%M")
-
-    order = Order.objects.create(
-        student=request.user,
-        cafe=cafe,
-        pickup_time=pickup_time,
-        note=request.data.get('note', ''),
-        pay_method=request.data.get('pay_method', 'cash')
-    )
-    for item in request.data['items']:
-        OrderItem.objects.create(
-            order=order,
-            menu_item_id=item['menu_item'],
-            quantity=item['quantity'],
-            note=item.get('note', '')
-        )
-
-    serializer = OrderSerializer(order)
-    return Response(serializer.data, status=201)
-
-# Kitchen status update
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -188,7 +121,7 @@ def kitchen_order_status_view(request, pk):
     if request.user.role != 'kitchen':
         return Response({'detail': 'Forbidden'}, status=403)
     try:
-        order = Order.objects.get(pk=pk, cafe=request.user.cafe)
+        order = Order.objects.get(pk=pk)
     except Order.DoesNotExist:
         return Response(status=404)
     new_status = request.data.get('status')
@@ -204,17 +137,9 @@ def kitchen_order_status_view(request, pk):
 def kitchen_profile_view(request):
     if request.user.role != 'kitchen':
         return Response({'detail': 'Forbidden'}, status=403)
-    try:
-        cafe = request.user.cafe
-    except Cafe.DoesNotExist:
-        return Response({'detail': 'Cafe not assigned'}, status=404)
     if request.method == 'GET':
-        return Response({'name': cafe.name, 'emoji': cafe.emoji, 'floor': cafe.floor})
-    cafe.name = request.data.get('name', cafe.name)
-    cafe.emoji = request.data.get('emoji', cafe.emoji)
-    cafe.floor = request.data.get('floor', cafe.floor)
-    cafe.save()
-    return Response({'name': cafe.name, 'emoji': cafe.emoji, 'floor': cafe.floor})
+        return Response({'name': 'KBTU Kitchen', 'emoji': '🍽️', 'floor': '1'})
+    return Response({'name': 'KBTU Kitchen', 'emoji': '🍽️', 'floor': '1'})
 
 
 # ==================== STUDENT ORDERS ====================
@@ -226,7 +151,6 @@ def orders_view(request):
         orders = Order.objects.filter(student=request.user).order_by('-created_at')
         return Response(OrderSerializer(orders, many=True).data)
 
-    # POST
     if request.user.role != 'student':
         return Response({'detail': 'Forbidden'}, status=403)
 
@@ -238,7 +162,6 @@ def orders_view(request):
     if not pickup_time:
         return Response({'detail': 'pickup_time is required'}, status=400)
 
-    # Если cafe не передан — берём из первого блюда
     cafe_id = request.data.get('cafe')
     if not cafe_id:
         try:
