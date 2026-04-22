@@ -21,6 +21,8 @@ export interface KitchenOrder {
 
 export interface KitchenMenuItem {
   id: number;
+  cafe: number;
+  cafe_name: string;
   name: string;
   description: string;
   emoji: string;
@@ -28,7 +30,6 @@ export interface KitchenMenuItem {
   category: string;
   is_available: boolean;
 }
-
 export interface MenuItemPayload {
   name: string;
   description: string;

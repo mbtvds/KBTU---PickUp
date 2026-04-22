@@ -4,7 +4,7 @@ import { Observable, tap } from 'rxjs';
 
 interface LoginPayload    { email: string; password: string; }
 interface RegisterPayload { name: string; email: string; password: string; }
-interface TokenResponse   { access: string; refresh: string; }
+interface TokenResponse   { access: string; refresh: string; role?: string; }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,15 +25,12 @@ export class AuthService {
     );
   }
 
-  logout(): Observable<void> {
-    const refresh = this.getRefreshToken();
-    this.clearTokens();
-    return this.http.post<void>(`${this.api}/auth/logout/`, { refresh });
-  }
-
   private saveTokens(tokens: TokenResponse): void {
-    localStorage.setItem('access_token',  tokens.access);
+    localStorage.setItem('access_token', tokens.access);
     localStorage.setItem('refresh_token', tokens.refresh);
+    if (tokens.role) {
+      localStorage.setItem('role', tokens.role);
+    }
   }
 
   getAccessToken(): string | null {
@@ -44,9 +41,14 @@ export class AuthService {
     return localStorage.getItem('refresh_token');
   }
 
+  getRole(): string | null {
+    return localStorage.getItem('role');
+  }
+
   clearTokens(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('role');
   }
 
   isLoggedIn(): boolean {

@@ -62,30 +62,41 @@ class KitchenOrdersView(APIView):
     def get(self, request):
         if request.user.role != 'kitchen':
             return Response({'detail': 'Forbidden'}, status=403)
-        orders = Order.objects.filter(cafe=request.user.cafe).exclude(status='picked').order_by('-created_at')
+        orders = Order.objects.exclude(status='picked').order_by('-created_at')
         return Response(OrderSerializer(orders, many=True).data)
-
-
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def kitchen_menu_view(request):
     if request.user.role != 'kitchen':
         return Response({'detail': 'Forbidden'}, status=403)
     if request.method == 'GET':
-        items = MenuItem.objects.filter(cafe=request.user.cafe)
+        items = MenuItem.objects.all()
         return Response(MenuItemSerializer(items, many=True).data)
+    
+    # POST
+    cafe_id = request.data.get('cafe_id')
+    if cafe_id:
+        try:
+            cafe = Cafe.objects.get(pk=cafe_id)
+        except Cafe.DoesNotExist:
+            return Response({'detail': 'Cafe not found'}, status=404)
+    else:
+        try:
+            cafe = request.user.cafe
+        except Cafe.DoesNotExist:
+            return Response({'detail': 'Cafe not assigned'}, status=400)
+
     serializer = MenuItemSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(cafe=request.user.cafe)
+        serializer.save(cafe=cafe)
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
-
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def kitchen_menu_detail_view(request, pk):
     try:
-        item = MenuItem.objects.get(pk=pk, cafe=request.user.cafe)
+        item = MenuItem.objects.get(pk=pk)
     except MenuItem.DoesNotExist:
         return Response(status=404)
     if request.method == 'GET':
@@ -101,13 +112,14 @@ def kitchen_menu_detail_view(request, pk):
         return Response(status=204)
 
 
+
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def kitchen_order_status_view(request, pk):
     if request.user.role != 'kitchen':
         return Response({'detail': 'Forbidden'}, status=403)
     try:
-        order = Order.objects.get(pk=pk, cafe=request.user.cafe)
+        order = Order.objects.get(pk=pk)
     except Order.DoesNotExist:
         return Response(status=404)
     new_status = request.data.get('status')
@@ -116,24 +128,18 @@ def kitchen_order_status_view(request, pk):
     order.status = new_status
     order.save()
     return Response(OrderSerializer(order).data)
-
-
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def kitchen_profile_view(request):
     if request.user.role != 'kitchen':
         return Response({'detail': 'Forbidden'}, status=403)
-    try:
-        cafe = request.user.cafe
-    except Cafe.DoesNotExist:
-        return Response({'detail': 'Cafe not assigned'}, status=404)
     if request.method == 'GET':
-        return Response({'name': cafe.name, 'emoji': cafe.emoji, 'floor': cafe.floor})
-    cafe.name = request.data.get('name', cafe.name)
-    cafe.emoji = request.data.get('emoji', cafe.emoji)
-    cafe.floor = request.data.get('floor', cafe.floor)
-    cafe.save()
-    return Response({'name': cafe.name, 'emoji': cafe.emoji, 'floor': cafe.floor})
+        return Response({
+            'name': 'KBTU Kitchen',
+            'emoji': '🍽️',
+            'floor': '1'
+        })
+    return Response({'name': 'KBTU Kitchen', 'emoji': '🍽️', 'floor': '1'})
 
 
 # ==================== STUDENT ORDERS ====================

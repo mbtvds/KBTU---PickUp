@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, AfterViewChecked } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
@@ -11,12 +11,17 @@ import { CartService } from './services/cart.service';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements AfterViewChecked {
 
   constructor(
     private authService: AuthService,
     public cartService: CartService,
+    private cdr: ChangeDetectorRef,
   ) {}
+
+  ngAfterViewChecked(): void {
+    this.cdr.detectChanges();
+  }
 
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
@@ -28,6 +33,9 @@ export class App {
 
   get cartTotal(): number {
     return this.cartService.total();
+  }
+  get isKitchen(): boolean {
+    return this.authService.getRole() === 'kitchen';
   }
 
   logout() {

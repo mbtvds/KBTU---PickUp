@@ -225,3 +225,32 @@
   from { transform: translateY(20px); opacity: 0; }
   to   { transform: translateY(0); opacity: 1; }
 }
+.cafe-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cafe-filter-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid #d0ccc4;
+  background: transparent;
+  color: #7a7870;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.cafe-filter-btn.active {
+  background: #1a1814;
+  color: #f5f2eb;
+  border-color: #1a1814;
+}
+.menu-card-cafe {
+  font-size: 11px;
+  color: #8a8678;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}

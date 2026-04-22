@@ -49,6 +49,15 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
     { id: 'desserts', label: 'Десерты' },
   ];
 
+  // Фильтр по кафе
+  cafes: { id: number; name: string }[] = [];
+  activeCafeFilter: number | null = null;
+
+  get filteredMenuItems(): KitchenMenuItem[] {
+    if (!this.activeCafeFilter) return this.menuItems;
+    return this.menuItems.filter(i => i.cafe === this.activeCafeFilter);
+  }
+
   private pollSub?: Subscription;
 
   constructor(
@@ -71,10 +80,9 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
 
   switchPage(page: Page): void {
     this.activePage = page;
-    if (page === 'menu' && !this.menuItems.length) this.loadMenu();
+    if (page === 'menu') this.loadMenu();
+    if (page === 'orders') this.loadOrders();
   }
-
-  // ── Orders ──────────────────────────────────────────────────
 
   loadOrders(): void {
     this.kitchenService.getOrders().subscribe({
@@ -116,13 +124,12 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Menu ────────────────────────────────────────────────────
-
   loadMenu(): void {
     this.isLoadingMenu = true;
     this.kitchenService.getMenu().subscribe({
       next: (data: KitchenMenuItem[]) => {
         this.menuItems = data;
+        this.cafes = [...new Map(data.map(i => [i.cafe, { id: i.cafe, name: i.cafe_name ?? 'Кафе' }])).values()];
         this.isLoadingMenu = false;
         this.cdr.detectChanges();
       },
@@ -135,13 +142,17 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   }
 
   openAddDish(): void {
-    this.isEditingDish = false;
-    this.editDishId = null;
-    this.dishName = this.dishDesc = this.dishEmoji = '';
-    this.dishPrice = 0;
-    this.dishCategory = 'drinks';
-    this.showDishModal = true;
+  if (!this.activeCafeFilter) {
+    alert('Выберите заведение чтобы добавить блюдо');
+    return;
   }
+  this.isEditingDish = false;
+  this.editDishId = null;
+  this.dishName = this.dishDesc = this.dishEmoji = '';
+  this.dishPrice = 0;
+  this.dishCategory = 'drinks';
+  this.showDishModal = true;
+}
 
   openEditDish(item: KitchenMenuItem): void {
     this.isEditingDish = true;
@@ -157,11 +168,14 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   saveDish(): void {
     if (!this.dishName.trim() || !this.dishPrice) return;
     this.isSavingDish = true;
-
+    
     const payload = {
-      name: this.dishName, description: this.dishDesc,
-      emoji: this.dishEmoji || '🍽️', price: this.dishPrice,
+      name: this.dishName,
+      description: this.dishDesc,
+      emoji: this.dishEmoji || '🍽️',
+      price: this.dishPrice,
       category: this.dishCategory,
+      cafe_id: this.activeCafeFilter,
     };
 
     const req$ = this.isEditingDish && this.editDishId
@@ -186,8 +200,6 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
       error: (err: unknown) => console.error(err)
     });
   }
-
-  // ── Profile ─────────────────────────────────────────────────
 
   loadProfile(): void {
     this.kitchenService.getProfile().subscribe({
